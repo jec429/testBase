@@ -1,0 +1,16 @@
+#!/bin/sh
+echo
+echo VALIDATION CONTEXT
+echo
+cmt show uses
+echo
+
+compiler=`cmt show macro_value cc`
+echo Completed: `date`
+echo Host: `uname -a`
+echo User: ${USER}
+echo Working Directory: `pwd`
+echo Compiler: ${compiler}
+echo
+${compiler} -v
+echo

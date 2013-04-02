@@ -1,0 +1,6 @@
+#!/bin/sh
+echo
+echo --------------------------------------------------------------
+echo Run a full validation \(tests from both check.d and validate.d\)
+echo --------------------------------------------------------------
+echo

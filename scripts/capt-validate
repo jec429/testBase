@@ -1,0 +1,281 @@
+#! /usr/bin/env python
+#
+usage = """
+%prog [options] arguments
+
+Run any validation scripts found in the PACKAGE_ROOT/validate.d/ and
+PACKAGE_ROOT/check.d/ directories for all of the packages used by the
+current package.  This script expects to be run in the cmt directory.
+See the doxygen documentation for details.
+"""
+
+import re
+import os
+import os.path
+import sys
+import commands
+import optparse
+
+#Define the command line options and parse the command line.
+parser = optparse.OptionParser(usage)
+parser.add_option("-a","--apply",action="store_false",
+                  dest="dryRun",default=True,
+                  help="Actually run the tests.  Print what would be done if not set")
+parser.add_option("-c","--current-only",action="store_true",
+                  dest="onlyCurrent",default=False,
+                  help="Only run tests for current package.")
+parser.add_option("-f","--fast",action="store_true",
+                  dest="onlyFast",default=False,
+                  help="Only run the fast tests in check.d directory.")
+parser.add_option("-d","--dir",
+                  dest="outputDirectory",default="validation",
+                  help="Set output directory for intermediate files.")
+parser.add_option("--trace",action="store_true",
+                  dest="trace", default=False,
+                  help="Print commands before executing them.")
+
+(options,args) = parser.parse_args()
+
+## Run a command if this isn't a dry run.
+# This controls the running of commands so that output is captured and
+# non-zero return values are raised as exception.  Most of the logic
+# is stolen from commands.getstatusoutput(), but it works a little bit
+# differently.
+def System(command, forceRun=False, output=False):
+    if options.trace: print "   Run: " + command
+    if options.dryRun and not forceRun: return "dryrun"
+    pipe = os.popen('{ ' + command + '; } 2>&1', 'r')
+    text = None
+    if not output: 
+        text = pipe.read()
+        if text[-1:] == '\n': text = text[:-1]
+    else:
+        for line in pipe:
+            print line.strip()
+    status = pipe.close()
+    if status is None: status = 0
+    if status != 0: raise Exception(status)
+    return text
+
+## Summarize the package use information for the current package.  
+class CurrentPackages:
+
+    ## A list of packages used in the current package.
+    # This is a list of tuples.  The first element of each tuple is
+    # the package name, the second is the package version, and the
+    # third is the path to the package root.
+    packageUses = []
+
+    ## The machine dependent tag used for the packages.
+    tag = ""
+
+    ## The execution directory for the current package
+    executionDir = ""
+
+    ## The package name for the package where this is being executed.
+    packageName = ""
+
+    ## The package version for the package where this is being executed.
+    packageVersion = "" 
+
+    ## The package root for the package where this is being executed.
+    packageRoot = "" 
+
+    ## The constructor.
+    def __init__(self,outputDir):
+        self.tag = System("cmt show macro_value tag",True)
+        if not options.onlyCurrent:
+            v = System("(cmt show uses | grep '^use')",
+                       True).splitlines()
+            for line in v:
+                current = line.split()
+                package = current[1]
+                version = current[2]
+                root = current[3].strip("()") + "/" + package + "/" + version
+                self.packageUses.append((package, version, root))
+
+        self.packageName = System("cmt show macro_value package",True)
+        self.packageVersion = System("cmt show macro_value version",True)
+        self.packageRoot = System("cmt show macro_value PACKAGE_ROOT",True)
+        self.executionDir = self.packageRoot+"/"+self.tag+ "/"+outputDir
+        self.packageUses.append((self.packageName,
+                                 self.packageVersion,
+                                 self.packageRoot))
+
+    ## Return list of existing directorys of validation scripts.
+    def GetValidationDirs(self):
+        dirs = []
+        for package, version, root in self.packageUses:
+            dir = root + "/validate.d"
+            if not os.path.exists(dir): continue
+            if not os.path.isdir(dir): continue
+            dirs.append((package,version,dir))
+        return dirs
+
+    ## Return list of existing directorys of fast check scripts.
+    def GetFastCheckDirs(self):
+        dirs = []
+        for package, version, root in self.packageUses:
+            dir = root + "/check.d"
+            if not os.path.exists(dir): continue
+            if not os.path.isdir(dir): continue
+            dirs.append((package,version,dir))
+        return dirs
+
+    ## Return a list of validation executables.
+    def GetValidationExe(self):
+        validationExe = []
+        for package, version, dir in self.GetFastCheckDirs():
+            for file in os.listdir(dir):
+                if not re.search("^[0-9]{3}",file) and file[0:3] != "zzz": 
+                    continue
+                exe = dir + "/" + file
+                if exe[-1:] == "~": continue
+                if exe[-3:] == ".so": continue
+                if not os.path.isfile(exe): continue
+                if not os.access(exe,os.X_OK): continue
+                validationExe.append((package,version,exe,self.executionDir))
+        if options.onlyFast: return validationExe
+        for package, version, dir in self.GetValidationDirs():
+            for file in os.listdir(dir):
+                if not re.search("^[0-9]{3}",file): continue
+                exe = dir + "/" + file
+                if exe[-1:] == "~": continue
+                if exe[-3:] == ".so": continue
+                if not os.path.isfile(exe): continue
+                if not os.access(exe,os.X_OK): continue
+                validationExe.append((package,version,exe,self.executionDir))
+        return validationExe
+
+    ## Return the root of the package where this is being executed.
+    def GetCurrentRoot(self):
+        return self.packageRoot
+
+
+class TestScript:
+    status=""
+    package = ""
+    version = ""
+    packageRoot = ""
+    scriptName = ""
+    scriptPath = ""
+    runBaseDir = ""
+    runPackageRoot = ""
+
+    def __init__(self, package, version, path, runDir, runRoot):
+        self.status = "not-run"
+        self.package = package
+        self.version = version
+        self.packageRoot = os.path.dirname(path)
+        self.packageRoot = os.path.dirname(self.packageRoot)
+        self.scriptName = os.path.basename(path)
+        self.scriptPath = path
+        self.runBaseDir = runDir
+        self.runPackageRoot = runRoot
+
+    def __cmp__(self, other):
+        if self.scriptName < other.scriptName: return -1
+        if self.scriptName > other.scriptName:  return 1
+        return 0
+    
+    def __repr__(self):
+        return "<" + self.status + "," + self.scriptPath + ">"
+
+    def Status(self):
+        return self.status
+
+    def Package(self):
+        return self.package
+
+    def Version(self):
+        return self.version
+
+    def Script(self):
+        return self.scriptName
+
+    def Run(self):
+        print "RUN", self.scriptPath
+        if options.dryRun: return
+        try:
+            os.makedirs(self.runBaseDir)
+        except OSError:
+            pass
+        pipe = os.popen('{ ' \
+                            + ' cd ' + self.runBaseDir + '; ' \
+                            + self.scriptPath \
+                            + ' ' + self.packageRoot \
+                            + ' ' + self.runPackageRoot \
+                            + '; } 2>&1', 'r')
+        line = ""
+        for line in pipe: print line.strip()
+        if line != "": print ""
+        status = pipe.close()
+        if re.search("FAIL",line): self.status = "failure"
+        elif re.search("MISSING *INPUT", line): self.status = "missing-input"
+        elif re.search("NOT *RUN", line): self.status = "not-run"
+        elif status is None: self.status = "success"
+        elif status == 0: self.status = "success"
+        else: 
+            self.status = "failure-"+str(status)
+            print "FAILED WITH STATUS:", status
+            print ""
+
+# Get the packages used by the current package.
+currentPackages = CurrentPackages(options.outputDirectory)
+
+# Find all of the validation scripts and sort them into executable order.
+scripts = [TestScript(package,version,exe,runBase,
+                      currentPackages.GetCurrentRoot())
+           for package,version,exe,runBase
+           in currentPackages.GetValidationExe()]
+scripts.sort()
+
+# Run all of the scripts.
+for script in scripts: script.Run()
+
+successes = 0
+failures = 0
+notRun = 0
+missingInput = 0
+
+print "Summary of unsuccessful tests:"
+for script in scripts:
+    status = script.Status()
+    if status == "success": successes = successes + 1
+    elif status == "not-run": 
+        notRun = notRun + 1
+        print "NOT RUN ", \
+            "Script:", script.Script(), \
+            " Package:", script.Package(), \
+            " Version:", script.Version()
+    elif status == "missing-input": 
+        missingInput = missingInput + 1
+        print "NO INPUT", \
+            "Script:", script.Script(), \
+            " Package:", script.Package(), \
+            " Version:", script.Version()
+    else: 
+        failures = failures + 1
+        print "FAILURE ", \
+            "Script:", script.Script(), \
+            " Package:", script.Package(), \
+            " Version:", script.Version(), \
+            " Status:", script.Status()
+
+if failures < 1 and missingInput < 1 and notRun < 1:
+    print "    No unsuccessful tests"
+    
+print ""
+print "SUMMARY -- Successes:", successes, \
+    "   Failures:", failures, \
+    "   Not run:", notRun, \
+    "   Missing input:", missingInput
+
+if not options.dryRun and failures > 0:
+    print "TEST FAILED"
+    sys.exit(1)
+
+if options.dryRun:
+    print ""
+    print "Use the --help option for documentation."
+    print "Use the --apply option to run the validation."

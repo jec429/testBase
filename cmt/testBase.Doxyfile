@@ -1,0 +1,6 @@
+# Special files to include.
+FILE_PATTERNS += tut.h
+
+# Override the default exclusion rules to make sure we see the tut
+# documentation. 
+EXCLUDE_PATTERNS       = *~ */.* 

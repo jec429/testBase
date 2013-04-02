@@ -1,0 +1,57 @@
+#! /bin/bash
+#
+# Download a file from the CAPT validation input repository.  This first
+#checks to see if the file is already available.  The command line
+#arguments are:
+#
+# capt-get-validation-input <package> <file> <md5sum>
+#
+# <package> The name of the package that first uses this file.
+#
+# <file>    The name of the file to get.
+#
+# <cksum>   The checksum of the file calculated using cksum.
+#
+
+checkSum() {
+   if [ -f $1 ]; then
+     md5sum $1 | grep ^${2} > /dev/null
+   else
+     return 1
+   fi
+}
+
+set -e
+
+PACKAGE=$1; shift
+FILE=$1; shift
+SUM=$1; shift
+
+# The location of the input files.
+if [ ${CAPTFILES}x == x ]; then
+    CAPTFILES=${CAPT_HTTP}/files/validate
+fi
+
+# Check if the file exists
+if checkSum ${FILE} ${SUM}; then
+    echo File is already available.
+    exit 0
+fi
+
+# Get the file from the web.
+wget -S -N ${CAPTFILES}/${PACKAGE}/${FILE}
+
+# Check that the file was gotten.
+if [ ! -f ${FILE} ]; then
+    echo NOT RUN
+    exit 2
+fi
+
+# Check if the file was downloaded correctly.
+if checkSum ${FILE} ${SUM} ; then
+    echo File ok
+else
+    echo "Downloaded file does not match checksum."
+    echo FAIL
+    exit 1
+fi

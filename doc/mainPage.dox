@@ -1,0 +1,23 @@
+/*! \mainpage Testing CAPTAIN software.
+
+\anchor testBase
+
+There are two different categories of tests run on CAPTAIN software.  The
+first type of tests is generally referred to as regression testing.  These
+tests check for low level bugs in the software, and are applied to make
+sure that as bugs are fixed, they stay fixed.  Regression tests are
+primarily implemented using tut (Testing Using Templates, described in \ref
+usingTUT) The second type of tests is referred to as "validation".  These
+tests are used to perform cross package checks, and verify everything from
+package performance to proper handling of physics.  Validation is handled
+using the capt-validate command (see \ref captValidate) which runs
+validation scripts found with the individual packages.
+
+Since both types of tests check for different types of problems, both are
+critical.  Regression testing checks for very low level critical
+functionality that can be isolated from the rest of the software system.
+It makes sure that our software is built out of solid components.
+Validation checks to make sure that all of our components fit together into
+a working system.
+
+*/

@@ -1,0 +1,11 @@
+#!/bin/sh
+echo
+echo Start Time: `date`
+echo Host: `uname -a`
+echo User: ${USER}
+echo Working Directory: `pwd`
+compiler=`cmt show macro_value cc`
+echo Compiler: ${compiler}
+echo
+${compiler} -v
+echo

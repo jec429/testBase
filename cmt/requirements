@@ -1,0 +1,21 @@
+package testBase
+
+###########################################################3
+# testBase -- Low level regression test support.
+manager Clark McGrew <clark.mcgrew@sunysb.edu>
+
+branches cmt src doc
+
+use captainPolicy
+
+# Build methods to include.
+document doxygen doxygen -group=documentation ../doc/*.dox
+
+# Build information used by packages that use this one.
+macro testBase_cppflags " -DTESTBASE_USED "
+
+path_remove PATH "$(TESTBASEROOT)"
+path_prepend PATH "$(TESTBASEROOT)/$(testBase_tag)" \
+      WIN32      "$(TESTBASEROOT)/$(testBase_tag)" 
+path_prepend PATH "$(TESTBASEROOT)/scripts"
+
