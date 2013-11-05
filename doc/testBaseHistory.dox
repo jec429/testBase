@@ -1,2 +1,14 @@
 /*! \page testBaseHistory History for the testBase Package 
+
+\section testBase_v0r0p0_history Version 0.0.0
+
+Freeze information:
+   - Freeze Date: Tue Nov  5 14:05:28 2013
+   - Freeze User: mcgrew
+   - Freeze Host: boxer.physics.sunysb.edu boxer.local 
+
+
+This is the testing harness for the CAPTAIN software.  It provides the unit
+testing functions and scripts needed to run the validation.
+
 */
