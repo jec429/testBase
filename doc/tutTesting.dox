@@ -2,36 +2,67 @@
 
 \section TUT Minimum steps to make TUT work for you
 
-What is TUT
-
 TUT is a pure C++ unit test framework. Its name - TUT - stands for 
-Template Unit Tests.
+Template Unit Tests.   TUT provides all features required for unit testing:
 
-Features
-
-TUT provides all features required for unit testing:
-
-    - Similar tests can be grouped together into test groups. Each 
+ - Similar tests can be grouped together into test groups. Each 
       test group has its unique name and is located in a separate 
       compilation unit. One group can contain almost unlimited number 
       of tests (actually, the limit is the compiler template 
       recursion depth).
-    - User can run all the tests (regression), or just some selected 
+ - User can run all the tests (regression), or just some selected 
       groups or even some tests in these groups.
-    - TUT provides special template functions to check the condition 
+ - TUT provides special template functions to check the condition 
       validity at run-time and to force test failure if required. 
       Since C++ doesn't provide a facility for obtaining stack trace 
       of the throwed exception and TUT avoids macros, those functions 
       accept string marker to allow users easely determine the source 
       of exception.
-    - TUT contains callback that can be implemented by the calling code 
+ - TUT contains callback that can be implemented by the calling code 
       to integrate with an IDE, for example. Callbacks tell listener 
       when a new test run started, when test runner switches to the 
       next tests group, when a test was completed (and what result it 
       has), and when test run was finished. The callbacks allow users 
       to produce their own visualization format for test process and results.
-    - Being a template library, it doesn't need compilation; just 
+ - Being a template library, it doesn't need compilation; just 
       include the <tut.h> header into the test modules.
+
+\subsection tutQuickie Quick Reference
+
+This section assumes that you already use TUT, but can't remember the
+details.  If you are not familiar with TUT, skip to the next section.  The
+basic cut and paste starting point is. 
+\code
+#include <tut.h>
+namespace tut {
+    struct baseTestName {
+	// Run before each test.
+        baseTestName() {}
+	// Run after each test.
+        ~baseTestName() {}
+    };
+
+    // Declare the test group.
+    typedef test_group<baseTestName>::object testTestName;
+    test_group<baseTestName> groupTestName("TestName");
+
+    // A do nothing test for TestName.
+    template<> template<> void testTestName::test<1> () {
+        // do nothing test
+    }
+};
+\endcode
+
+The actual checks are run using
+
+ - ensure("Message", assert) -- Ensures that the argument is true.
+ - ensure_equals("Message", value, expected) -- Ensures the value equals
+   expected. 
+ - ensure_distance("Message", value, expected, tolerance) -- Insure value is
+   within tolerance of the expected.
+ - ensure_lessthan("Message", lesser, greater) -- Ensures lesser<greater. 
+ - ensure_greaterthan("Message", greater, lesser) -- Ensures greater>lesser. 
+ - fail("Message") -- Always fail.
 
 \section tutTests TUT tests organization
 
@@ -57,6 +88,7 @@ Tests
 Each single test usually checks only one specific element of functionality. 
 For example, for a container a test could check whether size() call 
 returns zero after the successful call to the clear() method.
+
 
 \section writingTUT Writing simple test
 
