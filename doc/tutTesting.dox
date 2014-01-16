@@ -58,8 +58,10 @@ The actual checks are run using
  - ensure("Message", assert) -- Ensures that the argument is true.
  - ensure_equals("Message", value, expected) -- Ensures the value equals
    expected. 
- - ensure_distance("Message", value, expected, tolerance) -- Insure value is
-   within tolerance of the expected.
+ - ensure_distance("Message", value, expected, dist) -- Insure value is
+   between expected-dist < value < expected+dist.
+ - ensure_tolerance("Message", value, expected, toler) -- Insure value is
+   between expected-tol*expected < value < expected+tol*expected.
  - ensure_lessthan("Message", lesser, greater) -- Ensures lesser<greater. 
  - ensure_greaterthan("Message", greater, lesser) -- Ensures greater>lesser. 
  - fail("Message") -- Always fail.

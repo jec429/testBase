@@ -566,6 +566,34 @@ namespace tut
     }
 
     /**
+     * Tests two objects for being at most in given tolerance one from another.
+     * Borders are excluded.
+     * Throws if false.
+     *
+     * NB: T must have operator << defined somewhere, or
+     * client code will not compile at all! Also, T shall have
+     * operators + and -, and be comparable.
+     */
+    template <class T>
+    void ensure_tolerance(const char* msg,const T& actual,const T& expected,const T& tolerance)
+    {
+      T dist = expected*tolerance;
+      if( expected-dist >= actual || expected+dist <= actual )
+      {
+        std::stringstream ss;
+        ss << (msg?msg:"") << (msg?": ":"") << "expected [" << expected-dist << ";" 
+           << expected+dist << "] actual " << actual;
+        throw failure(ss.str().c_str());
+      }
+    }
+
+    template <class T>
+    void ensure_tolerance(const T& actual,const T& expected,const T& tolerance)
+    {
+      ensure_tolerance<>(0,actual,expected,tolerance);
+    }
+
+    /**
      * Unconditionally fails with message.
      */
     void fail(const char* msg="")
