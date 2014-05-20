@@ -11,4 +11,19 @@ Freeze information:
 This is the testing harness for the CAPTAIN software.  It provides the unit
 testing functions and scripts needed to run the validation.
 
+
+\section testBase_v1r0p0_history Version 1.0.0
+
+Freeze information:
+   - Freeze Date: Tue May 20 11:24:03 2014
+   - Freeze User: mcgrew
+   - Freeze Host: boxer.physics.sunysb.edu boxer.local 
+
+
+INITIAL VERSION
+
+The test base package is adapted from the T2K ND280 software base.  It
+centers around the Testing Using Templates tool for regression testing, and
+a set of python scripts for longer validation testing.
+
 */
