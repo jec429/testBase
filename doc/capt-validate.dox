@@ -20,7 +20,15 @@ fail with "NOT RUN" otherwise.  This may prevent much of the validation
 from being run directly in a package.  The expectation is that overall
 validation will be run from a global package (such as captainRelease) where
 all tools are available (and in that case, the elecSim validation scripts
-can successfully run DETSIM.exe).  
+can successfully run DETSIM.exe).  Scripts can check if an executable is
+available by running (e.g. for DETSIM.exe)
+
+\code
+if ! which DETSIM.exe; then
+   echo "NOT RUN"
+   exit 1
+fi
+\endcode
 
 \section namesCAPTValidate Script Naming Conventions for capt-validate
 
