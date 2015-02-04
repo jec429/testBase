@@ -93,6 +93,8 @@ class CurrentPackages:
                 package = current[1]
                 version = current[2]
                 root = current[3].strip("()") + "/" + package + "/" + version
+                if not os.path.exists(root):
+                    root = current[3].strip("()") + "/" + package
                 self.packageUses.append((package, version, root))
 
         self.packageName = System("cmt show macro_value package",True)
@@ -108,8 +110,10 @@ class CurrentPackages:
         dirs = []
         for package, version, root in self.packageUses:
             dir = root + "/validate.d"
-            if not os.path.exists(dir): continue
-            if not os.path.isdir(dir): continue
+            if not os.path.exists(dir):
+                continue
+            if not os.path.isdir(dir):
+                continue
             dirs.append((package,version,dir))
         return dirs
 
@@ -118,8 +122,10 @@ class CurrentPackages:
         dirs = []
         for package, version, root in self.packageUses:
             dir = root + "/check.d"
-            if not os.path.exists(dir): continue
-            if not os.path.isdir(dir): continue
+            if not os.path.exists(dir):
+                continue
+            if not os.path.isdir(dir):
+                continue
             dirs.append((package,version,dir))
         return dirs
 
