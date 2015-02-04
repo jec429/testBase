@@ -5,8 +5,9 @@ usage = """
 
 Run any validation scripts found in the PACKAGE_ROOT/validate.d/ and
 PACKAGE_ROOT/check.d/ directories for all of the packages used by the
-current package.  This script expects to be run in the cmt directory.
-See the doxygen documentation for details.
+current package.  This script expects to be run in the cmt directory
+of a package containing all dependencies needed to execute the
+validation scripts.  See the doxygen documentation for details.
 """
 
 import re

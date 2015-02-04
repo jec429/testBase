@@ -3,11 +3,24 @@
 The capt-validate script is designed to run any validation scripts found
 in the PACKAGE_ROOT/validate.d/ and PACKAGE_ROOT/check.d/ directories for all
 of the packages used by the current package.  This script expects to be run
-in the cmt directory.
+in the cmt directory of a package referencing all of the dependencies
+needed to run the validation scripts.  
 
 The validation scripts should be placed in one of two directories.  Checks
 placed in the /check.d/ directory are expected to run quickly.  More
 complete checks should be placed in the /validate.d/ directory.
+
+Packages may use tools not available as direct dependencies in any
+validation scripts, however, the validation script should check for the
+presence of the tool.  As an example, the elecSim package may not directly
+depend on the detSim package, but will need the output of detSim to do
+various validation checks.  In this case, the elecSim validation scripts
+may check for the presence of DETSIM.exe and use it if available, but must
+fail with "NOT RUN" otherwise.  This may prevent much of the validation
+from being run directly in a package.  The expectation is that overall
+validation will be run from a global package (such as captainRelease) where
+all tools are available (and in that case, the elecSim validation scripts
+can successfully run DETSIM.exe).  
 
 \section namesCAPTValidate Script Naming Conventions for capt-validate
 
