@@ -55,8 +55,8 @@ convention is used for script naming.
        where scripts that produce calibration coefficients are
        expected to be found. 
 
-   400-499 -- Scripts which produce calibrate uncalibrated hits
-       (TDigits) into calibrated hits (THits).
+   400-499 -- Scripts which turn uncalibrated hits (TDigits) into
+       calibrated hits (THits).
 
    500-599 -- Scripts which need calibrated THit objects.  This is
        where the reconstruction tests should be run.
