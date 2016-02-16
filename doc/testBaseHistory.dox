@@ -26,4 +26,19 @@ The test base package is adapted from the T2K ND280 software base.  It
 centers around the Testing Using Templates tool for regression testing, and
 a set of python scripts for longer validation testing.
 
+
+\section testBase_v1r0p1_history Version 1.0.1
+
+Freeze information:
+   - Freeze Date: Tue Feb 16 18:25:12 2016
+   - Freeze User: mcgrew
+   - Freeze Host: boxer boxer 
+
+
+BUG FIX:
+
+* Handle the case when a cmt version directory exists.
+
+* This also adds several fixes to the documentation, including how to test
+  tools that don't have direct dependencies.
 */
